@@ -1,5 +1,7 @@
 # Weather Data API
 
+![Build Status](https://github.com/ashishjoshi2605/colaberry-coding-assesment/actions/workflows/test.yml/badge.svg)
+
 ## Purpose
 
 This project provides a RESTful API to manage and query weather data records. It allows users to retrieve weather records and statistics for different weather stations, ensuring robust data validation, error handling, and pagination.

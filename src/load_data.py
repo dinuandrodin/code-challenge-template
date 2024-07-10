@@ -10,11 +10,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 def load_data_from_files(directory):
+    """
+    Load weather data from text files into the database.
+    
+    Parameters:
+    - directory: str, path to the directory containing the text files.
+    """
     start_time = datetime.now()
     logger.info(f"Data loading started at {start_time}")
     
     record_count = 0
 
+    # Iterate over all files in the directory
     for filename in os.listdir(directory):
         if filename.endswith('.txt'):
             weather_station_id = os.path.splitext(filename)[0]  # Extract the weather station ID from the filename
@@ -27,18 +34,7 @@ def load_data_from_files(directory):
                     min_temp = int(columns[2]) if columns[2] != '-9999' else None
                     precipitation = int(columns[3]) if columns[3] != '-9999' else None
 
-                    # Check for duplicates based on all columns
-                    # existing_record = WeatherRecord.query.filter_by(
-                    #     date=date,
-                    #     max_temp=max_temp,
-                    #     min_temp=min_temp,
-                    #     precipitation=precipitation,
-                    #     weather_station_id=weather_station_id
-                    # ).first()
-                    # if existing_record:
-                    #     logger.info(f"Duplicate found: {existing_record}")
-                    #     continue
-
+                    # Create a new WeatherRecord instance
                     weather_record = WeatherRecord(
                         date=date,
                         max_temp=max_temp,
@@ -57,9 +53,14 @@ def load_data_from_files(directory):
     logger.info(f"Total time taken: {end_time - start_time}")
 
 def remove_duplicates():
+    """
+    Remove duplicate weather records from the database.
+    Keeps only the latest record based on ingestion timestamp.
+    """
     start_time = datetime.now()
     logger.info(f"Duplicate removal started at {start_time}")
     
+    # Subquery to find the latest ingestion timestamp for each unique weather record
     subquery = db.session.query(
         WeatherRecord.date,
         WeatherRecord.max_temp,
@@ -75,6 +76,7 @@ def remove_duplicates():
         WeatherRecord.weather_station_id
     ).subquery()
 
+    # Find duplicate records that do not have the latest ingestion timestamp
     duplicates = db.session.query(WeatherRecord).join(
         subquery,
         (WeatherRecord.date == subquery.c.date) &
@@ -97,7 +99,10 @@ def remove_duplicates():
     logger.info(f"Total time taken: {end_time - start_time}")
 
 if __name__ == '__main__':
+    # Create the Flask application instance
     app = create_app()
+
+    # Ensure the database schema is created and perform data loading and duplicate removal
     with app.app_context():
         db.create_all()
         load_data_from_files('wx_data')

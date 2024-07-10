@@ -6,11 +6,19 @@ This project provides a RESTful API to manage and query weather data records. It
 
 ## Project Structure
 
-- **models.py**: Contains SQLAlchemy models representing the weather records and statistics.
-- **load_data.py**: Script to load weather data from `.txt` files into the SQLite database.
-- **calculate_statistics.py**: Script to calculate yearly weather statistics for each weather station and store them in the database.
-- **remove_duplicates.py**: Script to remove duplicate records from the database, keeping only the latest record based on the ingestion timestamp.
-- **test_app.py**: Contains unit tests to ensure the API endpoints function correctly and meet specified requirements.
+### Answer to Problem 1 - Data Modeling
+- **src/models.py**: Contains SQLAlchemy models representing the weather records and statistics.
+
+### Answer to Problem 2 - Ingestion
+- **src/load_data.py**: Script to load weather data from `.txt` files into the SQLite database.
+
+### Answer to Problem 3 - Data Analysis
+- **src/calculate_statistics.py**: Script to calculate yearly weather statistics for each weather station and store them in the database.
+
+### Answer to Problem 4 - REST API
+- **src/resources.py**: Contains controllers for the API endpoints.
+- **src/app.py**: Contains actual code to create API endpoints and swagger documentation.
+- **src/test_app.py**: Contains unit tests to ensure the API endpoints function correctly and meet specified requirements.
 
 ## Setup Instructions
 
@@ -35,7 +43,7 @@ This project provides a RESTful API to manage and query weather data records. It
         ```powershell
         Set-ExecutionPolicy RemoteSigned
         ```
-     3. Activate the virtual environment:
+     3. Go back to the terminal where you cloned the repository to activate the virtual environment:
         ```powershell
         venv\Scripts\activate
         ```
@@ -71,6 +79,15 @@ This project provides a RESTful API to manage and query weather data records. It
 8. **Access the Swagger UI**
 
    Open your web browser and navigate to `http://127.0.0.1:5000/apidocs` to access the Swagger UI for the API documentation.
+
+## Running the Tests
+
+To run the unit tests and check code coverage:
+
+```bash
+coverage run -m unittest discover -s src -p "test_app.py"
+coverage report -m
+```
 
 ## API Endpoints
 
@@ -173,26 +190,11 @@ Calculates and stores yearly weather statistics:
 - Computes average maximum and minimum temperatures, and total precipitation for each weather station per year.
 - Stores the results in the `WeatherStats` table.
 
-### remove_duplicates.py
-Removes duplicate weather records:
-- Identifies duplicate records with the same values for all columns.
-- Keeps the record with the latest ingestion timestamp.
-- Deletes other duplicates and logs the operation.
-
 ### test_app.py
 Contains unit tests for the API endpoints:
 - Tests validation of date and year formats, ensuring `400 Bad Request` responses for invalid inputs.
 - Tests responses for valid inputs and empty results, ensuring `404 Not Found` and `200 OK` statuses as appropriate.
 - Verifies pagination functionality.
 - Achieves more than 80% code coverage.
-
-## Running the Tests
-
-To run the unit tests and check code coverage:
-
-```bash
-coverage run -m unittest discover -s src -p "test_app.py"
-coverage report -m
-```
-
+  
 This project ensures robust handling and querying of weather data, with comprehensive validation and error handling, and thorough unit tests to maintain code quality.

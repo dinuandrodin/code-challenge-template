@@ -1,119 +1,199 @@
-import logging
+from flask import request, jsonify
+from flask_restful import Resource
+from flasgger import swag_from
+from models import WeatherRecord, WeatherStats
+from app import db
 from datetime import datetime
-from sqlalchemy.sql import func
-from app import create_app
-from models import WeatherRecord, WeatherStats, db
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Pagination function to paginate query results
+def paginate(query, page, per_page):
+    total = query.count()
+    items = query.paginate(page, per_page, False).items
+    return {
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'items': [item.to_dict() for item in items]
+    }
 
-def calculate_statistics():
+class WeatherResource(Resource):
     """
-    Calculate yearly weather statistics for each weather station and store them in the database.
+    Resource for fetching weather records.
     """
-    start_time = datetime.now()
-    logger.info(f"Statistics calculation started at {start_time}")
-    
-    # Query to calculate the statistics
-    records = db.session.query(
-        func.substr(WeatherRecord.date, 1, 4).label('year'),
-        WeatherRecord.weather_station_id,
-        func.round(func.avg(WeatherRecord.max_temp / 10.0), 2).label('avg_max_temp'),
-        func.round(func.avg(WeatherRecord.min_temp / 10.0), 2).label('avg_min_temp'),
-        func.round(func.sum(WeatherRecord.precipitation / 100.0), 2).label('total_precipitation')
-    ).group_by(
-        func.substr(WeatherRecord.date, 1, 4),
-        WeatherRecord.weather_station_id
-    ).all()
+    @swag_from({
+        'tags': ['weather'],
+        'description': 'Get weather records',
+        'parameters': [
+            {
+                'name': 'page',
+                'description': 'Page number',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'per_page',
+                'description': 'Number of records per page',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'date',
+                'description': 'Filter by date (format: YYYY-MM-DD)',
+                'in': 'query',
+                'type': 'string',
+                'required': False,
+                'format': 'date'
+            },
+            {
+                'name': 'station_id',
+                'description': 'Filter by station ID',
+                'in': 'query',
+                'type': 'string',
+                'required': False
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Weather records',
+                'schema': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'date': {'type': 'string'},
+                            'max_temp': {'type': 'integer'},
+                            'min_temp': {'type': 'integer'},
+                            'precipitation': {'type': 'integer'},
+                            'weather_station_id': {'type': 'string'},
+                            'ingestion_timestamp': {'type': 'string'}
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Invalid date format or illogical date'
+            },
+            '404': {
+                'description': 'No records matching this criteria found'
+            }
+        }
+    })
+    def get(self):
+        """
+        GET method to fetch weather records with optional filters for date and station ID.
+        """
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        date = request.args.get('date', type=str)
+        station_id = request.args.get('station_id', type=str)
 
-    batch_size = 1000  # Define batch size for bulk insert
-    batch = []
+        query = WeatherRecord.query
+        if date:
+            try:
+                # Validate and convert the date from YYYY-MM-DD to YYYYMMDD format
+                datetime.strptime(date, '%Y-%m-%d')
+                date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+            except ValueError:
+                return {"error": "Invalid date format or illogical date. Use YYYY-MM-DD format."}, 400
+            
+            query = query.filter(WeatherRecord.date == date)
+        if station_id:
+            query = query.filter(WeatherRecord.weather_station_id == station_id)
 
-    for record in records:
-        year = int(record.year)
-        station = record.weather_station_id
-        avg_max_temp = record.avg_max_temp
-        avg_min_temp = record.avg_min_temp
-        total_precipitation = record.total_precipitation
+        result = paginate(query, page, per_page)
+        if not result['items']:
+            return {"error": "No records matching this criteria found"}, 404
+        return result
 
-        # Create a new WeatherStats instance
-        weather_stat = WeatherStats(
-            year=year,
-            weather_station_id=station,
-            avg_max_temp=avg_max_temp,
-            avg_min_temp=avg_min_temp,
-            total_precipitation=total_precipitation
-        )
-        batch.append(weather_stat)
-        
-        # Insert records in batches to optimize performance
-        if len(batch) >= batch_size:
-            db.session.bulk_save_objects(batch)
-            db.session.commit()
-            batch = []
-
-    # Insert remaining records
-    if batch:
-        db.session.bulk_save_objects(batch)
-        db.session.commit()
-
-    end_time = datetime.now()
-    logger.info(f"Statistics calculation finished at {end_time}")
-    logger.info(f"Total time taken: {end_time - start_time}")
-
-def remove_duplicates():
+class WeatherStatsResource(Resource):
     """
-    Remove duplicate weather statistics from the database.
-    Keeps only the latest record based on ID.
+    Resource for fetching weather statistics.
     """
-    start_time = datetime.now()
-    logger.info(f"Duplicate removal started at {start_time}")
-    
-    # Subquery to find the latest ID for each unique weather statistic
-    subquery = db.session.query(
-        WeatherStats.year,
-        WeatherStats.weather_station_id,
-        WeatherStats.avg_max_temp,
-        WeatherStats.avg_min_temp,
-        WeatherStats.total_precipitation,
-        func.max(WeatherStats.id).label('max_id')
-    ).group_by(
-        WeatherStats.year,
-        WeatherStats.weather_station_id,
-        WeatherStats.avg_max_temp,
-        WeatherStats.avg_min_temp,
-        WeatherStats.total_precipitation
-    ).subquery()
+    @swag_from({
+        'tags': ['weather_stats'],
+        'description': 'Get weather statistics',
+        'parameters': [
+            {
+                'name': 'page',
+                'description': 'Page number',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'per_page',
+                'description': 'Number of records per page',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'year',
+                'description': 'Filter by year (format: YYYY)',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'station_id',
+                'description': 'Filter by station ID',
+                'in': 'query',
+                'type': 'string',
+                'required': False
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Weather statistics',
+                'schema': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'year': {'type': 'integer'},
+                            'weather_station_id': {'type': 'string'},
+                            'avg_max_temp': {'type': 'number'},
+                            'avg_min_temp': {'type': 'number'},
+                            'total_precipitation': {'type': 'number'}
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Invalid year format'
+            },
+            '404': {
+                'description': 'No records matching this criteria found'
+            }
+        }
+    })
+    def get(self):
+        """
+        GET method to fetch weather statistics with optional filters for year and station ID.
+        """
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        year = request.args.get('year', type=str)
+        station_id = request.args.get('station_id', type=str)
 
-    # Find duplicate records that do not have the latest ID
-    duplicates = db.session.query(WeatherStats).join(
-        subquery,
-        (WeatherStats.year == subquery.c.year) &
-        (WeatherStats.weather_station_id == subquery.c.weather_station_id) &
-        (WeatherStats.avg_max_temp == subquery.c.avg_max_temp) &
-        (WeatherStats.avg_min_temp == subquery.c.avg_min_temp) &
-        (WeatherStats.total_precipitation == subquery.c.total_precipitation) &
-        (WeatherStats.id != subquery.c.max_id)
-    ).all()
+        query = WeatherStats.query
+        if year:
+            try:
+                # Validate the year format
+                if len(year) != 4 or not year.isdigit():
+                    raise ValueError("Invalid year format")
+            except ValueError:
+                return {"error": "Invalid year format. Use YYYY format."}, 400
+            
+            query = query.filter(WeatherStats.year == int(year))
+        if station_id:
+            query = query.filter(WeatherStats.weather_station_id == station_id)
 
-    duplicate_count = len(duplicates)
-    for record in duplicates:
-        db.session.delete(record)
-
-    db.session.commit()
-
-    end_time = datetime.now()
-    logger.info(f"Duplicate removal finished at {end_time}")
-    logger.info(f"Number of duplicate records deleted: {duplicate_count}")
-    logger.info(f"Total time taken: {end_time - start_time}")
-
-if __name__ == '__main__':
-    # Create the Flask application instance
-    app = create_app()
-
-    # Ensure the database schema is created and perform statistics calculation and duplicate removal
-    with app.app_context():
-        db.create_all()
-        calculate_statistics()
-        remove_duplicates()
+        result = paginate(query, page, per_page)
+        if not result['items']:
+            return {"error": "No records matching this criteria found"}, 404
+        return result

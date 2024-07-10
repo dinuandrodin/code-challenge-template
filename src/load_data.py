@@ -1,8 +1,8 @@
 import os
 import logging
 from datetime import datetime
-from app import app, db
-from models import WeatherRecord
+from app import create_app
+from models import WeatherRecord, db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -56,6 +56,7 @@ def load_data_from_files(directory):
     logger.info(f"Total time taken: {end_time - start_time}")
 
 if __name__ == '__main__':
+    app = create_app()
     with app.app_context():
         db.create_all()
-        load_data_from_files('../wx_data')
+        load_data_from_files('wx_data')

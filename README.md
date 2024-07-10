@@ -17,22 +17,28 @@ This project provides a RESTful API to manage and query weather data records. It
 1. **Clone the Repository**
 
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/ashishjoshi2605/colaberry-coding-assesment.git
+   cd colaberry-coding-assesment
    ```
 
 2. **Create a Virtual Environment**
 
-   ```bash
+   ```powershell
    python -m venv venv
    ```
 
 3. **Activate the Virtual Environment**
 
    - **Windows:**
-     ```bash
-     venv\Scripts\activate
-     ```
+     1. Open PowerShell as Administrator.
+     2. Run the following command to allow script execution:
+        ```powershell
+        Set-ExecutionPolicy RemoteSigned
+        ```
+     3. Activate the virtual environment:
+        ```powershell
+        venv\Scripts\activate
+        ```
    - **macOS/Linux:**
      ```bash
      source venv/bin/activate
@@ -40,26 +46,26 @@ This project provides a RESTful API to manage and query weather data records. It
 
 4. **Install Requirements**
 
-   ```bash
+   ```powershell
    pip install -r requirements.txt
    ```
 
 5. **Run Data Ingestion**
 
-   ```bash
-   python load_data.py
+   ```powershell
+   python src/load_data.py
    ```
 
 6. **Perform Data Analytics Task**
 
-   ```bash
-   python calculate_statistics.py
+   ```powershell
+   python src/calculate_statistics.py
    ```
 
 7. **Launch the API**
 
-   ```bash
-   python app.py
+   ```powershell
+   python src/app.py
    ```
 
 8. **Access the Swagger UI**

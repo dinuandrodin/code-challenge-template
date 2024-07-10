@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime
 from sqlalchemy.sql import func
-from app import app, db
-from models import WeatherRecord, WeatherStats
+from app import create_app
+from models import WeatherRecord, WeatherStats, db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -55,6 +55,7 @@ def calculate_statistics():
     logger.info(f"Total time taken: {end_time - start_time}")
 
 if __name__ == '__main__':
+    app = create_app()
     with app.app_context():
         db.create_all()
         calculate_statistics()

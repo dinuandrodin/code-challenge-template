@@ -64,7 +64,7 @@ I will use **Amazon CloudWatch Events** to schedule the Lambda function to run a
 
 Below is the architecture diagram illustrating the AWS services used:
 
-![AWS Architecture Diagram]()
+![AWS Architecture Diagram](https://github.com/ashishjoshi2605/colaberry-coding-assesment/blob/dev/aws_architecture_diagram.png)
 
 ## Setup Instructions
 

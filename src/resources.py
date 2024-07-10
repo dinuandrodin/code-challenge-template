@@ -5,7 +5,7 @@ from models import WeatherRecord, WeatherStats
 from app import db
 from datetime import datetime
 
-# Pagination function
+# Pagination function to paginate query results
 def paginate(query, page, per_page):
     total = query.count()
     items = query.paginate(page, per_page, False).items
@@ -17,6 +17,9 @@ def paginate(query, page, per_page):
     }
 
 class WeatherResource(Resource):
+    """
+    Resource for fetching weather records.
+    """
     @swag_from({
         'tags': ['weather'],
         'description': 'Get weather records',
@@ -79,6 +82,9 @@ class WeatherResource(Resource):
         }
     })
     def get(self):
+        """
+        GET method to fetch weather records with optional filters for date and station ID.
+        """
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         date = request.args.get('date', type=str)
@@ -103,6 +109,9 @@ class WeatherResource(Resource):
         return result
 
 class WeatherStatsResource(Resource):
+    """
+    Resource for fetching weather statistics.
+    """
     @swag_from({
         'tags': ['weather_stats'],
         'description': 'Get weather statistics',
@@ -163,6 +172,9 @@ class WeatherStatsResource(Resource):
         }
     })
     def get(self):
+        """
+        GET method to fetch weather statistics with optional filters for year and station ID.
+        """
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         year = request.args.get('year', type=str)

@@ -61,7 +61,7 @@ This project provides a RESTful API to manage and query weather data records. It
    pip install -r requirements.txt
    ```
 
-5. **Run Data Ingestion**
+5. **Run Data Ingestion (This will take about 5 minutes to execute.)**
 
    ```bash
    python src/load_data.py

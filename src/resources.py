@@ -1,7 +1,9 @@
 from flask import request, jsonify
 from flask_restful import Resource
+from flasgger import swag_from
 from models import WeatherRecord, WeatherStats
 from app import db
+from datetime import datetime
 
 # Pagination function
 def paginate(query, page, per_page):
@@ -15,6 +17,67 @@ def paginate(query, page, per_page):
     }
 
 class WeatherResource(Resource):
+    @swag_from({
+        'tags': ['weather'],
+        'description': 'Get weather records',
+        'parameters': [
+            {
+                'name': 'page',
+                'description': 'Page number',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'per_page',
+                'description': 'Number of records per page',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'date',
+                'description': 'Filter by date (format: YYYY-MM-DD)',
+                'in': 'query',
+                'type': 'string',
+                'required': False,
+                'format': 'date'
+            },
+            {
+                'name': 'station_id',
+                'description': 'Filter by station ID',
+                'in': 'query',
+                'type': 'string',
+                'required': False
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Weather records',
+                'schema': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'date': {'type': 'string'},
+                            'max_temp': {'type': 'integer'},
+                            'min_temp': {'type': 'integer'},
+                            'precipitation': {'type': 'integer'},
+                            'weather_station_id': {'type': 'string'},
+                            'ingestion_timestamp': {'type': 'string'}
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Invalid date format or illogical date'
+            },
+            '404': {
+                'description': 'No records matching this criteria found'
+            }
+        }
+    })
     def get(self):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
@@ -23,14 +86,82 @@ class WeatherResource(Resource):
 
         query = WeatherRecord.query
         if date:
+            try:
+                # Validate and convert the date from YYYY-MM-DD to YYYYMMDD format
+                datetime.strptime(date, '%Y-%m-%d')
+                date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+            except ValueError:
+                return {"error": "Invalid date format or illogical date. Use YYYY-MM-DD format."}, 400
+            
             query = query.filter(WeatherRecord.date == date)
         if station_id:
             query = query.filter(WeatherRecord.weather_station_id == station_id)
 
         result = paginate(query, page, per_page)
-        return jsonify(result)
+        if not result['items']:
+            return {"error": "No records matching this criteria found"}, 404
+        return result
 
 class WeatherStatsResource(Resource):
+    @swag_from({
+        'tags': ['weather_stats'],
+        'description': 'Get weather statistics',
+        'parameters': [
+            {
+                'name': 'page',
+                'description': 'Page number',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'per_page',
+                'description': 'Number of records per page',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'year',
+                'description': 'Filter by year (format: YYYY)',
+                'in': 'query',
+                'type': 'integer',
+                'required': False
+            },
+            {
+                'name': 'station_id',
+                'description': 'Filter by station ID',
+                'in': 'query',
+                'type': 'string',
+                'required': False
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Weather statistics',
+                'schema': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'year': {'type': 'integer'},
+                            'weather_station_id': {'type': 'string'},
+                            'avg_max_temp': {'type': 'number'},
+                            'avg_min_temp': {'type': 'number'},
+                            'total_precipitation': {'type': 'number'}
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Invalid year format'
+            },
+            '404': {
+                'description': 'No records matching this criteria found'
+            }
+        }
+    })
     def get(self):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
@@ -39,9 +170,19 @@ class WeatherStatsResource(Resource):
 
         query = WeatherStats.query
         if year:
+            try:
+                # Validate the year format
+                year_str = str(year)
+                if len(year_str) != 4 or not year_str.isdigit():
+                    raise ValueError("Invalid year format")
+            except ValueError:
+                return {"error": "Invalid year format. Use YYYY format."}, 400
+            
             query = query.filter(WeatherStats.year == year)
         if station_id:
             query = query.filter(WeatherStats.weather_station_id == station_id)
 
         result = paginate(query, page, per_page)
-        return jsonify(result)
+        if not result['items']:
+            return {"error": "No records matching this criteria found"}, 404
+        return result

@@ -20,6 +20,52 @@ This project provides a RESTful API to manage and query weather data records. It
 - **src/app.py**: Contains actual code to create API endpoints and swagger documentation.
 - **src/test_app.py**: Contains unit tests to ensure the API endpoints function correctly and meet specified requirements.
 
+### AWS Deployment Plan
+
+#### Storage of Text Files
+To store the tab-separated text files containing weather data, I will use **Amazon S3 (Simple Storage Service)**. S3 is ideal for storing large amounts of data due to its durability, scalability, and security.
+
+#### Data Ingestion
+For the data ingestion process, I will use **AWS Lambda**. I will write a Lambda function that reads data from the S3 bucket, processes it, and loads it into the database. This function will be triggered on a schedule using **Amazon CloudWatch Events**.
+
+#### Database
+Instead of using SQLite, I will use **Amazon RDS (Relational Database Service)** with a database engine like PostgreSQL or MySQL. RDS is fully managed, making it easier to set up, operate, and scale a relational database in the cloud.
+
+#### API Deployment
+I will containerize my Flask API using Docker and deploy it using **Amazon ECS (Elastic Container Service)** or **AWS Fargate**. Fargate allows me to run containers without managing the underlying infrastructure. To expose the API endpoints, I will set up **Amazon API Gateway**.
+
+#### Scheduled Data Ingestion
+I will use **Amazon CloudWatch Events** to schedule the Lambda function to run at specific intervals, automating the data ingestion process.
+
+### Detailed Steps:
+
+1. **Store Text Files in S3**
+    - Create an S3 bucket and upload all the tab-separated text files.
+
+2. **Data Ingestion with Lambda**
+    - Write a Lambda function to read data from S3, process it, and insert it into an Amazon RDS database.
+    - Use Amazon CloudWatch Events to trigger the Lambda function on a schedule.
+
+3. **Set Up the Database in RDS**
+    - Create an RDS instance with PostgreSQL or MySQL.
+    - Set up the necessary tables in the RDS instance to store the weather data.
+
+4. **Deploy Flask API with ECS or Fargate**
+    - Create a Dockerfile for the Flask application.
+    - Build the Docker image and push it to Amazon ECR (Elastic Container Registry).
+    - Create an ECS cluster and set up a task definition using the Docker image.
+    - Use Fargate to run the containers.
+
+5. **API Gateway**
+    - Set up Amazon API Gateway to expose the endpoints of the Flask application.
+    - Configure API Gateway to integrate with the ECS/Fargate service.
+
+### Architecture Diagram
+
+Below is the architecture diagram illustrating the AWS services used:
+
+![AWS Architecture Diagram]()
+
 ## Setup Instructions
 
 1. **Clone the Repository**

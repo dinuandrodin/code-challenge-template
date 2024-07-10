@@ -165,20 +165,19 @@ class WeatherStatsResource(Resource):
     def get(self):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
-        year = request.args.get('year', type=int)
+        year = request.args.get('year', type=str)
         station_id = request.args.get('station_id', type=str)
 
         query = WeatherStats.query
         if year:
             try:
                 # Validate the year format
-                year_str = str(year)
-                if len(year_str) != 4 or not year_str.isdigit():
+                if len(year) != 4 or not year.isdigit():
                     raise ValueError("Invalid year format")
             except ValueError:
                 return {"error": "Invalid year format. Use YYYY format."}, 400
             
-            query = query.filter(WeatherStats.year == year)
+            query = query.filter(WeatherStats.year == int(year))
         if station_id:
             query = query.filter(WeatherStats.weather_station_id == station_id)
 

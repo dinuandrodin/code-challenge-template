@@ -14,6 +14,17 @@ class WeatherRecord(db.Model):
         db.Index('idx_date_station', 'date', 'weather_station_id'),
     )
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date,
+            'max_temp': self.max_temp,
+            'min_temp': self.min_temp,
+            'precipitation': self.precipitation,
+            'weather_station_id': self.weather_station_id,
+            'ingestion_timestamp': self.ingestion_timestamp.isoformat()
+        }
+
     def __repr__(self):
         return f'<WeatherRecord {self.date} {self.weather_station_id}>'
 
@@ -28,6 +39,16 @@ class WeatherStats(db.Model):
     __table_args__ = (
         db.Index('idx_year_station', 'year', 'weather_station_id'),
     )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'year': self.year,
+            'weather_station_id': self.weather_station_id,
+            'avg_max_temp': self.avg_max_temp,
+            'avg_min_temp': self.avg_min_temp,
+            'total_precipitation': self.total_precipitation
+        }
 
     def __repr__(self):
         return f'<WeatherStats {self.year} {self.weather_station_id}>'

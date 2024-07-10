@@ -26,12 +26,15 @@ This project provides a RESTful API to manage and query weather data records. It
 
    ```bash
    git clone https://github.com/ashishjoshi2605/colaberry-coding-assesment.git
-   cd colaberry-coding-assesment
+   ```
+
+   ```bash
+    cd colaberry-coding-assesment
    ```
 
 2. **Create a Virtual Environment**
 
-   ```powershell
+   ```bash
    python -m venv venv
    ```
 
@@ -44,7 +47,7 @@ This project provides a RESTful API to manage and query weather data records. It
         Set-ExecutionPolicy RemoteSigned
         ```
      3. Go back to the terminal where you cloned the repository to activate the virtual environment:
-        ```powershell
+        ```bash
         venv\Scripts\activate
         ```
    - **macOS/Linux:**
@@ -54,25 +57,25 @@ This project provides a RESTful API to manage and query weather data records. It
 
 4. **Install Requirements**
 
-   ```powershell
+   ```bash
    pip install -r requirements.txt
    ```
 
 5. **Run Data Ingestion**
 
-   ```powershell
+   ```bash
    python src/load_data.py
    ```
 
 6. **Perform Data Analytics Task**
 
-   ```powershell
+   ```bash
    python src/calculate_statistics.py
    ```
 
 7. **Launch the API**
 
-   ```powershell
+   ```bash
    python src/app.py
    ```
 
@@ -86,6 +89,9 @@ To run the unit tests and check code coverage:
 
 ```bash
 coverage run -m unittest discover -s src -p "test_app.py"
+```
+
+```bash
 coverage report -m
 ```
 

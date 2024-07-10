@@ -1,6 +1,6 @@
 import unittest
-from app import create_app, db
-from models import WeatherRecord, WeatherStats
+from app import create_app
+from models import WeatherRecord, WeatherStats, db
 from flask import json
 
 class WeatherAPITestCase(unittest.TestCase):

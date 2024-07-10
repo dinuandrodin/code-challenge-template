@@ -17,8 +17,8 @@ This project provides a RESTful API to manage and query weather data records. It
 1. **Clone the Repository**
 
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/ashishjoshi2605/colaberry-coding-assesment.git
+   cd colaberry-coding-assesment
    ```
 
 2. **Install Requirements**
@@ -30,19 +30,19 @@ This project provides a RESTful API to manage and query weather data records. It
 3. **Run Data Ingestion**
 
    ```bash
-   python load_data.py
+   python src/load_data.py
    ```
 
 4. **Perform Data Analytics Task**
 
    ```bash
-   python calculate_statistics.py
+   python src/calculate_statistics.py
    ```
 
 5. **Launch the API**
 
    ```bash
-   python app.py
+   python src/app.py
    ```
 
 6. **Access the Swagger UI**

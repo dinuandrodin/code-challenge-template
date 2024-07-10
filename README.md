@@ -17,35 +17,52 @@ This project provides a RESTful API to manage and query weather data records. It
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/ashishjoshi2605/colaberry-coding-assesment.git
-   cd colaberry-coding-assesment
+   git clone <repository-url>
+   cd <repository-directory>
    ```
 
-2. **Install Requirements**
+2. **Create a Virtual Environment**
+
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the Virtual Environment**
+
+   - **Windows:**
+     ```bash
+     venv\Scripts\activate
+     ```
+   - **macOS/Linux:**
+     ```bash
+     source venv/bin/activate
+     ```
+
+4. **Install Requirements**
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run Data Ingestion**
+5. **Run Data Ingestion**
 
    ```bash
-   python src/load_data.py
+   python load_data.py
    ```
 
-4. **Perform Data Analytics Task**
+6. **Perform Data Analytics Task**
 
    ```bash
-   python src/calculate_statistics.py
+   python calculate_statistics.py
    ```
 
-5. **Launch the API**
+7. **Launch the API**
 
    ```bash
-   python src/app.py
+   python app.py
    ```
 
-6. **Access the Swagger UI**
+8. **Access the Swagger UI**
 
    Open your web browser and navigate to `http://127.0.0.1:5000/apidocs` to access the Swagger UI for the API documentation.
 
